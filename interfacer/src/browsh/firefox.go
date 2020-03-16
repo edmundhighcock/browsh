@@ -323,3 +323,36 @@ func StartFirefox() {
 func quitFirefox() {
 	sendFirefoxCommand("Marionette:Quit", map[string]interface{}{})
 }
+
+
+func sendFirefoxCommandJSON(command_json string, args_json string) {
+	Log("Sending `" + command_json + "` with args `" + args_json + "` to Firefox Marionette")
+	//fullCommand := []interface{}{0, ffCommandCount, command, args}
+	marshalled_count, _ := json.Marshal(ffCommandCount)
+
+  marshalled := fmt.Sprintf("[0, %s, %s, %s]", marshalled_count, command_json, args_json)
+  Log("Marshalled " + marshalled)
+	message := fmt.Sprintf("%d:%s", len(marshalled), marshalled)
+  Log("Message " + message)
+	fmt.Fprintf(marionette, message)
+	ffCommandCount++
+	go readMarionette()
+}
+
+func toggleCursorBrowsing() {
+	//var args map[string]interface{}
+	//args = map[string]interface{}{"keyDown": "\ue00a"}
+  Log("Starting toggleCursorBrowsing")
+  //Log(map[string]interface{}{"keyDown": "\ue00a"})
+
+  //Marionette    TRACE   0 -> [0,3,"WebDriver:PerformActions",{"actions":[{"actions":[{"type":"keyUp","value":"a"}],"id":"keyboard_id","type":"key"}]}]
+  //See https://www.w3.org/TR/webdriver/#dfn-key-input-source
+  //sendFirefoxCommandJSON("\"WebDriver:PerformActions\"", "{\"actions\": [{\"id\":\"keyboard_id\",\"type\":\"key\", \"actions\": [ {\"type\": \"keyDown\", \"value\": \"\\ue00a\"}, {\"type\": \"keyDown\", \"value\": \"c\"}, {\"type\": \"keyUp\", \"value\": \"c\"}, {\"type\": \"keyUp\", \"value\": \"\\ue00a\"} ]}]}")
+  sendFirefoxCommandJSON("\"WebDriver:PerformActions\"", "{\"actions\": [{\"id\":\"keyboard_id\",\"type\":\"key\", \"actions\": [ {\"type\": \"keyDown\", \"value\": \"\\\\ue037\"},{\"type\": \"keyUp\", \"value\": \"\\\\ue037\"} ]}]}")
+  sendFirefoxCommandJSON("\"WebDriver:PerformActions\"", "{\"actions\": [{\"id\":\"keyboard_id\",\"type\":\"key\", \"actions\": [ {\"type\": \"keyDown\", \"value\": \"\\\\ue00f\"},{\"type\": \"keyUp\", \"value\": \"\\\\ue00f\"} ]}]}")
+  sendFirefoxCommandJSON("\"WebDriver:PerformActions\"", "{\"actions\": [{\"id\":\"keyboard_id\",\"type\":\"key\", \"actions\": [ {\"type\": \"keyDown\", \"value\": \"PageDown\"},{\"type\": \"keyUp\", \"value\": \"PageDown\"} ]}]}")
+  renderUI()
+  //sendFirefoxCommand("WebDriver:PerformActions", map[string]interface{}{"keyDown": "c"})
+  //sendFirefoxCommand("WebDriver:PerformActions", map[string]interface{}{"keyUp": "c"})
+  //sendFirefoxCommand("WebDriver:PerformActions", map[string]interface{}{"keyUp": "\ue00a"})
+}

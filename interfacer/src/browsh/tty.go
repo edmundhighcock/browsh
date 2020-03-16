@@ -75,6 +75,12 @@ func handleUserKeyPress(ev *tcell.EventKey) {
 	if ev.Rune() == 'm' && ev.Modifiers() == 4 {
 		toggleMonochromeMode()
 	}
+	if ev.Rune() == 'C' && ev.Modifiers() == 4 {
+    Log("Got Alt+C")
+		toggleCursorBrowsing()
+	  sendMessageToWebExtension("/tab_command,/frame_pixels,/frame_text")
+    screen.Sync()
+	}
 	if ev.Key() == 279 && ev.Modifiers() == 0 {
 		// F1 key
 		openHelpTab()
@@ -101,6 +107,9 @@ func isKey(userKey string, ev *tcell.EventKey) bool {
 	modifierMatch := modifierKey == int(ev.Modifiers())
 	return runeMatch && keyCodeMatch && modifierMatch
 }
+
+// Alt-X search for text when I type 
+// Alt-C use cursors to browse
 
 func quitBrowsh() {
 	if !viper.GetBool("firefox.use-existing") {
