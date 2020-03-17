@@ -34,7 +34,7 @@ then
   # version.
   source_file=$source_dir/$xpi_file
   bundle_file=$PROJECT_ROOT/interfacer/browsh.xpi
-  $NODE_BIN/web-ext sign --api-key $MDN_USER --api-secret $MDN_KEY
+  #$NODE_BIN/web-ext sign --api-key $MDN_USER --api-secret $MDN_KEY
 else
   # TODO: This doesn't currently work with the Marionettte `tempAddon`
   # installation method. Just use `web-ext run` and Browsh's `use-existing-ff`

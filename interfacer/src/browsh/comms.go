@@ -74,8 +74,10 @@ func handleWebextensionCommand(message []byte) {
 		handleRawFrameTextCommands(parts)
 		return
 	}
+  Log("Received command from webext: " + command)
 	switch command {
 	case "/frame_text":
+    //Log("Received data from webext: " + strings.Join(parts[1:], ","))
 		parseJSONFrameText(strings.Join(parts[1:], ","))
 		renderCurrentTabWindow()
 	case "/frame_pixels":

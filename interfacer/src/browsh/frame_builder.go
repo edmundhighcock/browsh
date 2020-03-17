@@ -38,6 +38,7 @@ type frame struct {
 	cells *threadSafeCellsMap
 	// Input boxes, like for entering passwords, sending emails etc
 	inputBoxes map[string]*inputBox
+
 }
 
 type jsonFrameBase struct {
@@ -55,6 +56,7 @@ type incomingFrameText struct {
 	Text       []string            `json:"text"`
 	Colours    []int32             `json:"colours"`
 	InputBoxes map[string]inputBox `json:"input_boxes"`
+  ActiveBox string               `json:"active_box"`
 }
 
 // TODO: Can these be sent as binary blobs?
@@ -73,6 +75,7 @@ func (f *frame) subRowCount() int {
 
 func parseJSONFrameText(jsonString string) {
 	var incoming incomingFrameText
+  Log("parseJSONFrameText " + jsonString)
 	jsonBytes := []byte(jsonString)
 	if err := json.Unmarshal(jsonBytes, &incoming); err != nil {
 		Shutdown(err)
@@ -81,6 +84,7 @@ func parseJSONFrameText(jsonString string) {
 		Log(fmt.Sprintf("Not building frame for non-existent tab ID: %d", incoming.Meta.TabID))
 		return
 	}
+  Log("parseJSONFrameText incoming.ActiveBox " + incoming.ActiveBox)
 	Tabs[incoming.Meta.TabID].frame.buildFrameText(incoming)
 }
 
@@ -147,6 +151,7 @@ func (f *frame) isIncomingFrameTextValid(incoming incomingFrameText) bool {
 
 // TODO: There must be a more idiomatic way of doing this?
 func (f *frame) updateInputBoxes(incoming incomingFrameText) {
+  Log("Updating input boxes.")
 	for _, existingInputBox := range f.inputBoxes {
 		if _, ok := incoming.InputBoxes[existingInputBox.ID]; !ok {
 			// TODO: Does this also delete the memory pointed to by the reference?
@@ -167,6 +172,17 @@ func (f *frame) updateInputBoxes(incoming incomingFrameText) {
 		inputBox.TagName = incomingInputBox.TagName
 		inputBox.Type = incomingInputBox.Type
 	}
+  Log(fmt.Sprintf("ActiveBox is %s", incoming.ActiveBox))
+  if incoming.ActiveBox != "-1" {
+    for _, inputBox := range f.inputBoxes {
+      inputBox.isActive = false
+      if inputBox.ID == string(incoming.ActiveBox) {
+        urlBarFocus(false)
+        inputBox.isActive = true
+        activeInputBox = inputBox
+      }
+    }
+  }
 }
 
 func (f *frame) populateFrameText(incoming incomingFrameText) {

@@ -218,6 +218,7 @@ export default class extends utils.mixins(CommonMixin, CommandsMixin) {
     observer.observe(target, {
       subtree: true,
       characterData: true,
+      attributes: true,
       childList: true
     });
   }

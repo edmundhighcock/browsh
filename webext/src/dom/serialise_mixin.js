@@ -405,5 +405,19 @@ export default MixinBase =>
 
     _serialiseInputBoxes() {
       this.frame.input_boxes = this._getAllInputBoxes();
+      this.log(document.activeElement.attributes);
+  //    this.sendMessage(
+  //      `/status,info,activeElement.type+role ${document.activeElement.type} ${document.activeElement.role} ${document.activeElement.title}`
+  ///    );
+      if (document.activeElement.type == "textarea" ||
+          document.activeElement.type == "input" ||
+          document.activeElement.type == "text"
+      ){
+        this.frame.active_box = document.activeElement.getAttribute("data-browsh-id");
+      }
+      else {
+        this.frame.active_box = "-1";
+      }
+     
     }
   };

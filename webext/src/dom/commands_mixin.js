@@ -1,5 +1,49 @@
 import utils from "utils";
 
+function findNextTabStop(el) {
+  var universe = document.querySelectorAll('input, button, select, textarea, textbox, a[href]');
+  var list = Array.prototype.filter.call(universe, function(item) {return item.tabIndex >= "0"});
+  var index = list.indexOf(el);
+  return list[index + 1] || list[0];
+}
+function findNextTextArea(el) {
+  var universe = document.querySelectorAll('text, textarea');
+  var list = Array.prototype.filter.call(universe, function(item) {return item.tabIndex >= "0"});
+  var index = list.indexOf(el);
+  return list[index + 1] || list[0];
+  //var form = document.activeElement.closest('form');
+
+  //if (next<document.forms[0].elements.length){
+  //      document.forms[0].elements[next].focus()
+}
+
+function getDomPath(el) {
+  var stack = [];
+  while ( el.parentNode != null ) {
+    console.log(el.nodeName);
+    var sibCount = 0;
+    var sibIndex = 0;
+    for ( var i = 0; i < el.parentNode.childNodes.length; i++ ) {
+      var sib = el.parentNode.childNodes[i];
+      if ( sib.nodeName == el.nodeName ) {
+        if ( sib === el ) {
+          sibIndex = sibCount;
+        }
+        sibCount++;
+      }
+    }
+    if ( el.hasAttribute('id') && el.id != '' ) {
+      stack.unshift(el.nodeName.toLowerCase() + '#' + el.id);
+    } else if ( sibCount > 1 ) {
+      stack.unshift(el.nodeName.toLowerCase() + ':eq(' + sibIndex + ')');
+    } else {
+      stack.unshift(el.nodeName.toLowerCase());
+    }
+    el = el.parentNode;
+  }
+  return stack.slice(1); // removes the html element
+}
+
 export default MixinBase =>
   class extends MixinBase {
     _handleBackgroundMessage(message) {
@@ -79,7 +123,41 @@ export default MixinBase =>
       let state, message;
       switch (input.key) {
         case 18: // CTRL+r
+          //window.scrollBy(0,20);
           window.location.reload();
+          break;
+        case 7: // Ctrl+g
+          document.activeElement.click()
+        case 256: // Option+t
+          //window.location.reload();
+          this.sendMessage(
+            `/status,info,Pressed Option+T`
+          );
+          //window.scrollBy(100,0);
+          let elt = document.activeElement;
+          //this.log("Received tab stroke");
+          var nextElt = findNextTextArea(elt);
+          var nextEltpath = getDomPath(nextElt);
+          var nextEltitle = nextElt.title;
+          this.sendMessage(
+            `/status,info,findNextTextArea done ${nextEltpath} ${nextElt} ${nextEltitle} ${nextElt.attributes}`
+          );
+          nextElt.focus();
+          nextElt.select();
+          break;
+        case 9:  // Tab
+          //window.location.reload();
+          this.sendMessage(
+            `/status,info,Pressed Tab`
+          );
+          //window.scrollBy(100,0);
+          let el = document.activeElement;
+          //this.log("Received tab stroke");
+          var nextEl = findNextTabStop(el);
+          this.sendMessage(
+            `/status,info,findNextTabStop done ${nextEl}`
+          );
+          nextEl.focus();
           break;
         case 284: // F6
           state = this.config.browsh.use_experimental_text_visibility;
@@ -90,6 +168,11 @@ export default MixinBase =>
             `/status,info,Experimental text visibility: ${message}`
           );
           this.sendSmallTextFrame();
+          break;
+        default:
+          this.sendMessage(
+            `/status,info,pressed key ${input.key}`
+          );
           break;
       }
     }

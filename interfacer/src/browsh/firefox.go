@@ -227,7 +227,8 @@ func firefoxMarionette() {
 // Install the Browsh extension that was bundled with `go-bindata` under
 // `webextension.go`.
 func installWebextension() {
-	data, err := Asset("/browsh.xpi")
+	//data, err := Asset("/browsh.xpi")
+	data, err := Asset("/shared/code/browsh/webext/dist/web-ext-artifacts/browsh.zip")
 	if err != nil {
 		Shutdown(err)
 	}
