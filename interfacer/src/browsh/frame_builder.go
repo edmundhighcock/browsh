@@ -65,6 +65,8 @@ type incomingFramePixels struct {
 	Colours []int32       `json:"colours"`
 }
 
+var lastActiveBox string
+
 func (f *frame) domRowCount() int {
 	return f.totalHeight / 2
 }
@@ -173,15 +175,25 @@ func (f *frame) updateInputBoxes(incoming incomingFrameText) {
 		inputBox.Type = incomingInputBox.Type
 	}
   Log(fmt.Sprintf("ActiveBox is %s", incoming.ActiveBox))
-  if incoming.ActiveBox != "-1" {
-    for _, inputBox := range f.inputBoxes {
-      inputBox.isActive = false
-      if inputBox.ID == string(incoming.ActiveBox) {
-        urlBarFocus(false)
-        inputBox.isActive = true
-        activeInputBox = inputBox
+  if lastActiveBox != incoming.ActiveBox {
+    if incoming.ActiveBox != "-1" {
+      for _, inputBox := range f.inputBoxes {
+        inputBox.isActive = false
+        if inputBox.ID == string(incoming.ActiveBox) {
+          urlBarFocus(false)
+          inputBox.isActive = true
+          activeInputBox = inputBox
+        }
+      }
+    } else { 
+      if activeInputBox != &urlInputBox {
+        for _, inputBox := range f.inputBoxes {
+          inputBox.isActive = false
+        }
+        activeInputBox = nil
       }
     }
+    lastActiveBox = incoming.ActiveBox
   }
 }
 
