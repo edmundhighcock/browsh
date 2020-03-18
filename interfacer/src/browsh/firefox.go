@@ -283,6 +283,8 @@ func setDefaultFirefoxPreferences() {
 		parts := strings.SplitN(pref, "=", 2)
 		setFFPreference(parts[0], parts[1])
 	}
+  setFFPreference("accessibility.typeaheadfind", "true")
+  setFFPreference("accessibility.typeaheadfind.linksonly", "true")
 }
 
 func beginTimeLimit() {

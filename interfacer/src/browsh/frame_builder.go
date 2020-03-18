@@ -77,7 +77,7 @@ func (f *frame) subRowCount() int {
 
 func parseJSONFrameText(jsonString string) {
 	var incoming incomingFrameText
-  Log("parseJSONFrameText " + jsonString)
+  //Log("parseJSONFrameText " + jsonString)
 	jsonBytes := []byte(jsonString)
 	if err := json.Unmarshal(jsonBytes, &incoming); err != nil {
 		Shutdown(err)

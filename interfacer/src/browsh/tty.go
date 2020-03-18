@@ -75,11 +75,13 @@ func handleUserKeyPress(ev *tcell.EventKey) {
 	if ev.Rune() == 'm' && ev.Modifiers() == 4 {
 		toggleMonochromeMode()
 	}
-	if ev.Rune() == 'C' && ev.Modifiers() == 4 {
+	if ev.Rune() == 'c' && ev.Modifiers() == 4 {
     Log("Got Alt+C")
-		toggleCursorBrowsing()
-	  sendMessageToWebExtension("/tab_command,/frame_pixels,/frame_text")
-    screen.Sync()
+    setFFPreference("accessibility.typeaheadfind", "true")
+    setFFPreference("accessibility.typeaheadfind.linksonly", "true")
+		//toggleCursorBrowsing()
+	  //sendMessageToWebExtension("/tab_command,/frame_pixels,/frame_text")
+    //screen.Sync()
 	}
 	if ev.Key() == 279 && ev.Modifiers() == 0 {
 		// F1 key

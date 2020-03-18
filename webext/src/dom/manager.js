@@ -208,7 +208,9 @@ export default class extends utils.mixins(CommonMixin, CommandsMixin) {
   }
 
   _startMutationObserver() {
-    let target = document.querySelector("body");
+    //let target = document.querySelector("text textarea img p input");
+    //let target = document.querySelectorAll('input, button, select, textarea, textbox, a[href]');
+    let target = document.querySelectorAll('body');
     let observer = new MutationObserver(mutations => {
       mutations.forEach(mutation => {
         this.log("!!MUTATION!!", mutation);
