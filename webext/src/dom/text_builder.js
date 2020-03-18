@@ -134,7 +134,8 @@ export default class extends utils.mixins(CommonMixin, SerialiseMixin) {
     // outside the larger buffered TTY view.
     // Or ignore nodes with only whitespace
     //
-    const dom_rect = this._firstFiniteParent(node).getBoundingClientRect();
+    //const dom_rect = this._firstFiniteParent(node).getBoundingClientRect();
+    const dom_rect = node.parentElement.getBoundingClientRect();
 
     return !(
       !this._isDOMRectInSubFrame(dom_rect) ||
@@ -147,10 +148,12 @@ export default class extends utils.mixins(CommonMixin, SerialiseMixin) {
     // outside the larger buffered TTY view.
     // Or ignore nodes with only whitespace
     //
-    const dom_rect = this._firstFiniteParent(node).getBoundingClientRect();
+    //const dom_rect = this._firstFiniteParent(node).getBoundingClientRect();
+    const dom_rect = node.parentElement.getBoundingClientRect();
 
     if (node.textContent.trim().length === 0 &&
-        typeof(node.value) === "string" && node.tagName === "INPUT") {
+        typeof(node.value) === "string" && node.tagName === "INPUT" &&
+        node.getBoundingClientRect().width != 0) {
       this.sendMessage(
           `/status,info,nodevalue ${node.value}`
       );
@@ -169,6 +172,7 @@ export default class extends utils.mixins(CommonMixin, SerialiseMixin) {
     return !(
       node.tagName != "INPUT" ||
       !this._isDOMRectInSubFrame(dom_rect) ||
+      node.getBoundingClientRect().width === 0 ||
       node.textContent.trim().length != 0 ||  // This case is covered in _isRelevantTextNode
       typeof(node.value) != "string" || 
       node.value.trim().length === 0
@@ -213,14 +217,24 @@ export default class extends utils.mixins(CommonMixin, SerialiseMixin) {
   __positionTextNodes() {
     for (const node of this._text_nodes) {
       this._node = node;
+      var temp_text;
       if (typeof (node.value) == "string" && 
         node.value.trim().length != 0) {
         this.sendMessage(
             `/status,info,nodevalue ${node.value}`
         );
-        this._text = node.value;
+        temp_text = node.value;
       } else {
-        this._text = node.textContent;
+        temp_text = node.textContent;
+      }
+      //if (this._node.contains(document.activeElement)) {
+      if (this._node.textContent === document.activeElement.textContent) {
+        this.sendMessage(
+            `/status,info,active ${document.activeElement.textContent} ${document.activeElement === this._node} ${this._node.contains(document.activeElement)}`
+        );
+        this._text = "**" + temp_text + "**"; 
+      } else {
+        this._text = temp_text;
       }
       this._formatText();
       this._character_index = 0;
@@ -338,7 +352,8 @@ export default class extends utils.mixins(CommonMixin, SerialiseMixin) {
     // Node.isConnected() might be faster
     // It's possible that the node has dissapeared since nodes were collected.
     if (document.body.contains(this._node)) {
-      this._range.selectNode(this._firstFiniteNode(this._node));
+      /*this._range.selectNode(this._firstFiniteNode(this._node));*/
+      this._range.selectNode(this._node);
       rects = this._range.getClientRects();
     }
     return rects;
