@@ -175,6 +175,9 @@ func (f *frame) updateInputBoxes(incoming incomingFrameText) {
 		inputBox.Type = incomingInputBox.Type
 	}
   Log(fmt.Sprintf("ActiveBox is %s", incoming.ActiveBox))
+  //Since we rebuild the frame any time anything changes, we
+  // only want to shift the focus to an input box if it is a
+  // new input box being highlighted.
   if lastActiveBox != incoming.ActiveBox {
     if incoming.ActiveBox != "-1" {
       for _, inputBox := range f.inputBoxes {
@@ -186,6 +189,9 @@ func (f *frame) updateInputBoxes(incoming incomingFrameText) {
         }
       }
     } else { 
+      // If incoming.ActiveBox is "-1" then it means that
+      //   no input box has focus. We remove the activeInputBox
+      //   *unless* the active box is the url bar.
       if activeInputBox != &urlInputBox {
         for _, inputBox := range f.inputBoxes {
           inputBox.isActive = false

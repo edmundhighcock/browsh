@@ -90,6 +90,42 @@ export default class extends utils.mixins(CommonMixin, SerialiseMixin) {
         this._text_nodes.push(walker.currentNode);
       }
     }
+    const walker2 = document.createTreeWalker(
+      document.body,
+      NodeFilter.SHOW_ELEMENT,
+      null,
+      false
+    );
+    while (walker2.nextNode()) {
+      if (this._isRelevantInputNode(walker2.currentNode)) {
+        this._text_nodes.push(walker2.currentNode);
+      }
+    }
+  }
+
+  // Iterate up the node tree until we find the first
+  // element that has a DOM box of finite size, 
+  // starting with the node parent
+  _firstFiniteParent(node) {
+    return this._firstFiniteNode(node.parentElement);
+  }
+  
+  // Iterate up the node tree until we find the first
+  // element that has a DOM box of finite size, 
+  // starting with the node
+  _firstFiniteNode(node) {
+    var finite_element  = node;
+
+    if (typeof(finite_element.getBoundingClientRect) != "undefined") {
+      //if (typeof(parent_element.tagName) === "string" && parent_element.tagName === "CENTER") {
+      while (finite_element.getBoundingClientRect().width === 0 && finite_element.getBoundingClientRect().height === 0) {
+        if (typeof(finite_element.parentElement.getBoundingClientRect) === "undefined") {
+          break;
+        }
+        finite_element = finite_element.parentElement;
+      }
+    }
+    return finite_element;
   }
 
   // Does the node contain text that we want to parse?
@@ -97,11 +133,45 @@ export default class extends utils.mixins(CommonMixin, SerialiseMixin) {
     // Ignore text outside of the sub-frame, therefore outside either the TTY view or
     // outside the larger buffered TTY view.
     // Or ignore nodes with only whitespace
-    const dom_rect = node.parentElement.getBoundingClientRect();
+    //
+    const dom_rect = this._firstFiniteParent(node).getBoundingClientRect();
 
     return !(
       !this._isDOMRectInSubFrame(dom_rect) ||
-      node.textContent.trim().length === 0
+       node.textContent.trim().length === 0 
+    );
+  }
+  // Does the node contain text that we want to parse?
+  _isRelevantInputNode(node) {
+    // Ignore text outside of the sub-frame, therefore outside either the TTY view or
+    // outside the larger buffered TTY view.
+    // Or ignore nodes with only whitespace
+    //
+    const dom_rect = this._firstFiniteParent(node).getBoundingClientRect();
+
+    if (node.textContent.trim().length === 0 &&
+        typeof(node.value) === "string" && node.tagName === "INPUT") {
+      this.sendMessage(
+          `/status,info,nodevalue ${node.value}`
+      );
+    }
+
+//    return !(
+//      node.tagName === "STYLE" ||
+//      node.tagName === "DIV" ||
+//      node.tagName === "SCRIPT" ||
+//      !this._isDOMRectInSubFrame(dom_rect) ||
+//      (
+//        node.textContent.trim().length === 0 &&
+//        (typeof(node.value) != "string" || node.tagName != "INPUT" || node.value.trim().length === 0)
+//      )
+//    );
+    return !(
+      node.tagName != "INPUT" ||
+      !this._isDOMRectInSubFrame(dom_rect) ||
+      node.textContent.trim().length != 0 ||  // This case is covered in _isRelevantTextNode
+      typeof(node.value) != "string" || 
+      node.value.trim().length === 0
     );
   }
 
@@ -143,7 +213,15 @@ export default class extends utils.mixins(CommonMixin, SerialiseMixin) {
   __positionTextNodes() {
     for (const node of this._text_nodes) {
       this._node = node;
-      this._text = node.textContent;
+      if (typeof (node.value) == "string" && 
+        node.value.trim().length != 0) {
+        this.sendMessage(
+            `/status,info,nodevalue ${node.value}`
+        );
+        this._text = node.value;
+      } else {
+        this._text = node.textContent;
+      }
       this._formatText();
       this._character_index = 0;
       this._positionSingleTextNode();
@@ -260,7 +338,7 @@ export default class extends utils.mixins(CommonMixin, SerialiseMixin) {
     // Node.isConnected() might be faster
     // It's possible that the node has dissapeared since nodes were collected.
     if (document.body.contains(this._node)) {
-      this._range.selectNode(this._node);
+      this._range.selectNode(this._firstFiniteNode(this._node));
       rects = this._range.getClientRects();
     }
     return rects;
