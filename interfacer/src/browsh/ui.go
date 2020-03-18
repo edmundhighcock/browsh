@@ -5,6 +5,8 @@ import (
 	"github.com/spf13/viper"
 )
 
+var pageActiveInputBox * inputBox
+
 var (
 	urlInputBox = inputBox{
 		X:        0,
@@ -95,10 +97,17 @@ func urlBarFocusToggle() {
 
 func urlBarFocus(on bool) {
 	if !on {
-		activeInputBox = nil
+    if pageActiveInputBox != nil {
+      activeInputBox = pageActiveInputBox
+      activeInputBox.isActive = true
+    }
 		urlInputBox.isActive = false
 		urlInputBox.selectionOff()
 	} else {
+    if activeInputBox != nil {
+      pageActiveInputBox = activeInputBox
+      pageActiveInputBox.isActive = false
+    }
 		activeInputBox = &urlInputBox
 		urlInputBox.isActive = true
 		urlInputBox.xScroll = 0
